@@ -84,7 +84,9 @@ RUN adduser ${USER} www-data
 COPY ./php-fpm/www.pool.conf /etc/php/7.2/fpm/pool.d/www.pool.conf
 COPY ./php-fpm/php.ini /etc/php/7.2/fpm/php.ini
 
+
 EXPOSE 9000
+EXPOSE 3000
 
 ###########################################################################
 # Final Task
@@ -96,4 +98,5 @@ RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     rm /var/log/lastlog /var/log/faillog
 
+CMD service php7.2-fpm start && tail -f /var/log/php7.2-fpm.log
 WORKDIR var/www
