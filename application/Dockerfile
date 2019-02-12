@@ -63,8 +63,34 @@ RUN apt-get update && apt-get install -y \
     php7.2-mysql \
     php7.2-gd \
     php7.2-imagick \
+    php7.2-imap \
+    php-mailparse \
     git \
-    curl
+    curl \
+    wget
+
+# RUN curl -sL https://deb.nodesource.com/setup_11.x | bash -
+# RUN apt-get update && apt-get install -y \
+#     --allow-downgrades \
+#     --allow-remove-essential \
+#     --allow-change-held-packages \
+#     npm \
+#     nodejs \
+#     nodejs-legacy
+
+#########################################################################
+# Install Google Chrome Driver and Xvfb
+#########################################################################
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+RUN echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list
+RUN apt-get update && apt-get install -y \
+    --allow-downgrades \
+    --allow-remove-essential \
+    --allow-change-held-packages \
+    google-chrome-stable \
+    xvfb \
+    firefox \
+    fluxbox
 
 ##########################################################################
 # Composer:
@@ -98,5 +124,9 @@ RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     rm /var/log/lastlog /var/log/faillog
 
-CMD service php7.2-fpm start && tail -f /var/log/php7.2-fpm.log
+ENV DISPLAY :21.0
+RUN Xvfb :21 -ac -screen 0 1200x800x16 &
+CMD service php7.2-fpm start && \
+    tail -f /var/log/php7.2-fpm.log
+
 WORKDIR var/www
