@@ -7,7 +7,7 @@ services:
       - LOCALE=id_ID
       - TZ=Asia/Jakarta
     volumes:
-      - /w/www:/var/www
+      - ../www:/var/www
     ports:
       - 8000:8000
       - 9000:9000
@@ -20,7 +20,7 @@ services:
       - PHP_FPM_HOST=application
       - PHP_FPM_PORT=9000
     volumes:
-      - /w/www:/var/www
+      - ../www:/var/www
     ports:
       - 80:80
       - 7890:7890
@@ -36,7 +36,7 @@ services:
       - MYSQL_PASSWORD=James
       - MYSQL_TCP_PORT=3306
     volumes:
-      - /w/docker/mysql_data:/var/lib/mysql/
+      - ./mysql_data:/var/lib/mysql/
     ports:
       - 3306:3306
   phpmyadmin:
