@@ -70,7 +70,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     wget \
     zsh \
-    vi \
+    vim \
     nano
 
 ###########################################################################
