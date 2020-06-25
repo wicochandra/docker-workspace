@@ -23,16 +23,14 @@ apt update && apt install -y \
     nodejs \
     unzip \
     php7.3-cli \
-    python \
-    python-pip \
+    python3 \
+    python3-pip \
     zsh \
-    docker-ce
+    docker-ce \
+    docker-compose
 
 # Assign current user to "docker" group
 usermod -aG docker $USER
-
-# Install docker-compose
-pip install docker-compose
 
 # Install zsh
 sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
