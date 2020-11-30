@@ -1,0 +1,36 @@
+version: "3.2"
+
+services:
+  manager01:
+    build: ./manager01
+    environment:
+      - LOCALE=id_ID
+      - TZ=Asia/Jakarta
+    networks:
+      docker-swarm:
+          ipv4_address: 10.5.1.10
+
+  worker01:
+    build: ./worker01
+    environment:
+      - LOCALE=id_ID
+      - TZ=Asia/Jakarta
+    networks:
+      docker-swarm:
+          ipv4_address: 10.5.0.10
+
+  worker02:
+    build: ./worker02
+    environment:
+      - LOCALE=id_ID
+      - TZ=Asia/Jakarta
+    networks:
+      docker-swarm:
+          ipv4_address: 10.5.0.11
+
+networks:
+  docker-swarm:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16

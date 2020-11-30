@@ -1,4 +1,4 @@
-version: "3"
+version: "3.2"
 
 services:
   application:
@@ -8,11 +8,16 @@ services:
       - TZ=Asia/Jakarta
     volumes:
       - ../www:/var/www
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
     ports:
       - 8000:8000
       - 9000:9000
     depends_on:
       - mysql
+    networks:
+      - elk_elastic
+      - default
     tty: true
   nginx:
     build: ./nginx
@@ -57,3 +62,76 @@ services:
     image: redis
     ports:
       - 6379:6379
+  elasticsearch:
+    build:
+      context: elasticsearch/
+      args:
+        ELK_VERSION: $ELK_VERSION
+    volumes:
+      - type: bind
+        source: ./elasticsearch/config/elasticsearch.yml
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        read_only: true
+      - type: volume
+        source: elasticsearch
+        target: /usr/share/elasticsearch/data
+      - type: bind
+        source: ../www
+        target: /var/www
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      ELASTIC_PASSWORD: James
+      discovery.type: single-node
+  kibana:
+    build:
+      context: kibana/
+      args:
+        ELK_VERSION: $ELK_VERSION
+    volumes:
+      - type: bind
+        source: ./kibana/config/kibana.yml
+        target: /usr/share/kibana/config/kibana.yml
+        read_only: true
+    environment:
+      bootstrap.memory_lock: "true"
+      ES_JAVA_OPTS: "-Xms128m -Xmx128m"
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+  logstash:
+    build:
+      context: logstash/
+      args:
+        ELK_VERSION: $ELK_VERSION
+    volumes:
+      - type: bind
+        source: ./logstash/config/logstash.yml
+        target: /usr/share/logstash/config/logstash.yml
+        read_only: true
+      - type: bind
+        source: ./logstash/pipeline
+        target: /usr/share/logstash/pipeline
+        read_only: true
+      - type: bind
+        source: ../www
+        target: /var/www
+    ports:
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
+    environment:
+      bootstrap.memory_lock: "true"
+      ES_JAVA_OPTS: "-Xms128m -Xmx128m"
+    depends_on:
+      - elasticsearch
+
+volumes:
+  elasticsearch:
+
+networks:
+  elk_elastic:
+    external: true

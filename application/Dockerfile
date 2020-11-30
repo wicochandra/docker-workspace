@@ -49,23 +49,23 @@ RUN apt-get update && apt-get install -y \
     --allow-downgrades \
     --allow-remove-essential \
     --allow-change-held-packages \
-    php7.2-cli \
-    php7.2-common \
-    php7.2-curl \
-    php7.2-intl \
-    php7.2-json \
-    php7.2-xml \
-    php7.2-mbstring \
-    php7.2-zip \
-    php7.2-bcmath \
-    php7.2-memcached \
-    php7.2-fpm \
-    php7.2-mysql \
-    php7.2-gd \
-    php7.2-imagick \
-    php7.2-imap \
-    php7.2-xdebug \
-    php-mailparse \
+    php7.3-cli \
+    php7.3-common \
+    php7.3-curl \
+    php7.3-intl \
+    php7.3-json \
+    php7.3-xml \
+    php7.3-mbstring \
+    php7.3-zip \
+    php7.3-bcmath \
+    php7.3-memcached \
+    php7.3-fpm \
+    php7.3-mysql \
+    php7.3-gd \
+    php7.3-imagick \
+    php7.3-imap \
+    php7.3-xdebug \
+    php7.3-mailparse \
     git \
     curl \
     wget \
@@ -153,10 +153,10 @@ RUN . ~/.bashrc
 ###########################################################################
 # PHP-FPM
 ###########################################################################
-RUN rm /etc/php/7.2/fpm/pool.d/*
+RUN rm /etc/php/7.3/fpm/pool.d/*
 RUN adduser ${USER} www-data
-COPY ./php-fpm/www.pool.conf /etc/php/7.2/fpm/pool.d/www.pool.conf
-COPY ./php-fpm/php.ini /etc/php/7.2/fpm/php.ini
+COPY ./php-fpm/www.pool.conf /etc/php/7.3/fpm/pool.d/www.pool.conf
+COPY ./php-fpm/php.ini /etc/php/7.3/fpm/php.ini
 
 
 EXPOSE 9000
@@ -174,7 +174,7 @@ RUN apt-get clean && \
 
 ENV DISPLAY :21.0
 RUN Xvfb :21 -ac -screen 0 1200x800x16 &
-CMD service php7.2-fpm start && \
-    tail -f /var/log/php7.2-fpm.log
+CMD service php7.3-fpm start && \
+    tail -f /var/log/php7.3-fpm.log
 
 WORKDIR var/www
