@@ -27,7 +27,7 @@ services:
     depends_on:
       - application
   mysql:
-    image: mysql:5.7
+    image: mysql:8.0
     restart: always
     command: "--innodb_use_native_aio=0"
     environment:
