@@ -1,25 +1,24 @@
-FROM ubuntu:16.04
+FROM centos:8
 
-RUN DEBIAN_FRONTEND=noninteractive
+###########################################################################
+# Set Timezone
+###########################################################################
+ENV TZ Asia/Jakarta
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 ###########################################################################
 # Set Locale
 ###########################################################################
 ENV LOCALE en_US
 
-RUN apt-get update && apt-get install -y locales
-RUN locale-gen ${LOCALE}.UTF-8
+RUN dnf install -y \
+        glibc-locale-source \
+        glibc-langpack-en
+RUN localedef -f UTF-8 -i en_US ${LOCALE}.UTF-8
 ENV LANGUAGE=${LOCALE}.UTF-8
 ENV LC_ALL=${LOCALE}.UTF-8
 ENV LC_CTYPE=${LOCALE}.UTF-8
 ENV LANG=${LOCALE}.UTF-8
-
-###########################################################################
-# Set Timezone
-###########################################################################
-ENV TZ UTC
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
 
 ###########################################################################
 # Add non-root user:
@@ -27,19 +26,14 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 # Add a non-root user to prevent files being created with root permissions on host machine.
 ENV PUID 1000
 ENV PGID 1000
-ENV USER web_user
+ENV USER www-data
 
 RUN groupadd -g ${PGID} ${USER} && \
     useradd -u ${PUID} -g ${USER} -m ${USER} && \
     usermod -p "*" ${USER}
 
-###########################################################################
-# PPA dependencies:
-#   PHP 7
-###########################################################################
-RUN apt-get install -y software-properties-common && \
-    add-apt-repository -y ppa:ondrej/php
 
+<<<<<<< HEAD
 ###########################################################################
 # Install:
 #   PHP
@@ -66,25 +60,29 @@ RUN apt-get update && apt-get install -y \
     php7.3-imap \
     php7.3-xdebug \
     php7.3-mailparse \
+=======
+RUN dnf install -y \
+>>>>>>> master
     git \
     curl \
     wget \
     zsh \
-    vim \
-    nano
+    vim
 
+    
 ###########################################################################
 # Install:
 #  nodejs
 #  npm
 ###########################################################################
-RUN curl -sL https://deb.nodesource.com/setup_11.x | bash -
-RUN apt-get update && apt-get install -y \
-    --allow-downgrades \
-    --allow-remove-essential \
-    --allow-change-held-packages \
-    nodejs
-
+RUN curl -sL https://rpm.nodesource.com/setup_14.x | bash -
+RUN curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo
+RUN dnf install -y \
+        nodejs \
+        gcc-c++ \
+        make \
+        yarn
+        
 ###########################################################################
 # Install:
 #  oh-my-zsh
@@ -93,52 +91,39 @@ RUN apt-get update && apt-get install -y \
 RUN sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 COPY ./.zshrc /root/.zshrc
 
-#########################################################################
-# Install xvfb and Chrome headless dependencies
-#########################################################################
-RUN apt-get update && apt-get install -y \
-    --allow-downgrades \
-    --allow-remove-essential \
-    --allow-change-held-packages \
-    xvfb \
-    gconf-service \
-    libasound2 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libc6 \
-    libcairo2 \
-    libcups2 \
-    libdbus-1-3 \
-    libexpat1 \
-    libfontconfig1 \
-    libgcc1 \
-    libgconf-2-4 \
-    libgdk-pixbuf2.0-0 \
-    libglib2.0-0 \
-    libgtk-3-0 \
-    libnspr4 \
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libstdc++6 \
-    libx11-6 \
-    libx11-xcb1 \
-    libxcb1 \
-    libxcomposite1 \
-    libxcursor1 \
-    libxdamage1 \
-    libxext6 \
-    libxfixes3 \
-    libxi6 \
-    libxrandr2 \
-    libxrender1 \
-    libxss1 \
-    libxtst6 \
-    ca-certificates \
-    fonts-liberation \
-    libappindicator1 \
-    libnss3 \
-    lsb-release \
-    xdg-utils
+###########################################################################
+# PHP-FPM
+###########################################################################
+COPY ./php-fpm/www.pool.conf /etc/php-fpm.d/www.conf
+COPY ./php-fpm/php.ini /etc/php.ini
+
+RUN mkdir /run/php-fpm
+
+###########################################################################
+# Install:
+#  php7.2
+###########################################################################
+RUN dnf install -y \
+        https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \ 
+        https://rpms.remirepo.net/enterprise/remi-release-8.rpm
+RUN dnf module enable php:remi-7.3 -y && dnf install -y \
+        php-cli \
+        php-common \
+        php-curl \
+        php-intl \
+        php-json \
+        php-xml \
+        php-mbstring \
+        php-zip \
+        php-bcmath \
+        php-memcached \
+        php-fpm \
+        php-mysql \
+        php-gd \
+        php-imagick \
+        php-imap \
+        php-xdebug \
+        php-mailparse
 
 ##########################################################################
 # Composer:
@@ -149,32 +134,9 @@ RUN curl -s http://getcomposer.org/installer | php && \
     mv composer.phar /usr/local/bin/composer
 RUN . ~/.bashrc
 
-
-###########################################################################
-# PHP-FPM
-###########################################################################
-RUN rm /etc/php/7.3/fpm/pool.d/*
-RUN adduser ${USER} www-data
-COPY ./php-fpm/www.pool.conf /etc/php/7.3/fpm/pool.d/www.pool.conf
-COPY ./php-fpm/php.ini /etc/php/7.3/fpm/php.ini
-
-
+WORKDIR var/www
 EXPOSE 9000
 EXPOSE 3000
 
-###########################################################################
-# Final Task
-###########################################################################
-USER root
-
-# Clean up
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-    rm /var/log/lastlog /var/log/faillog
-
-ENV DISPLAY :21.0
-RUN Xvfb :21 -ac -screen 0 1200x800x16 &
-CMD service php7.3-fpm start && \
-    tail -f /var/log/php7.3-fpm.log
-
-WORKDIR var/www
+# CMD tail -f /etc/php/7.2/fpm/php.ini
+CMD [ "php-fpm", "-F", "-c /etc/php.ini"]
