@@ -11,7 +11,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 ###########################################################################
 ENV LOCALE en_US
 
-RUN yum update && yum install -y \
+RUN dnf install -y \
         glibc-locale-source \
         glibc-langpack-en
 RUN localedef -f UTF-8 -i en_US ${LOCALE}.UTF-8
@@ -62,16 +62,6 @@ RUN dnf install -y \
 RUN sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 COPY ./.zshrc /root/.zshrc
 
-##########################################################################
-# Composer:
-##########################################################################
-# Install composer and add its bin to the PATH.
-RUN curl -s http://getcomposer.org/installer | php && \
-    echo "export PATH=${PATH}:/var/www/vendor/bin" >> ~/.bashrc && \
-    mv composer.phar /usr/local/bin/composer
-RUN . ~/.bashrc
-
-
 ###########################################################################
 # PHP-FPM
 ###########################################################################
@@ -105,6 +95,16 @@ RUN dnf module enable php:remi-7.3 -y && dnf install -y \
         php-imap \
         php-xdebug \
         php-mailparse
+
+##########################################################################
+# Composer:
+##########################################################################
+# Install composer and add its bin to the PATH.
+RUN curl -s http://getcomposer.org/installer | php && \
+    echo "export PATH=${PATH}:/var/www/vendor/bin" >> ~/.bashrc && \
+    mv composer.phar /usr/local/bin/composer
+RUN . ~/.bashrc
+
 
 WORKDIR var/www
 EXPOSE 9000
